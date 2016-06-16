@@ -132,6 +132,12 @@ SELECT COUNT(DISTINCT CUSTOMERID) AS buyers_count FROM Orders;
   /*6.1	По таблице Orders найти количество заказов с группировкой по годам.
   Запрос должен выбирать две колонки c названиями Year и Total.
   Написать проверочный запрос, который вычисляет количество всех заказов.*/
+  
+SELECT a.y year, COUNT(a.y) total FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM ORDERS) a GROUP BY a.y;
+
+/*Проверочные запросы*/
+SELECT COUNT(ORDERID) FROM ORDERS; /*Сумма всех заказов из ORDERS (830)*/
+SELECT SUM(a.total) FROM (SELECT a.y year, COUNT(a.y) total FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM ORDERS) a GROUP BY a.y) a; /*Итоговая сумма total (830)*/
 
 /*////////////////////////////////////////////////////////////////////////////////////*/
 
@@ -142,3 +148,29 @@ SELECT COUNT(DISTINCT CUSTOMERID) AS buyers_count FROM Orders;
   Запрос должен использовать JOIN в предложении FROM. 
   Для определения связей между таблицами Employees и Territories надо использовать графическую схему для базы Southwind.*/
 
+SELECT e.LASTNAME, res.TERRITORYDESCRIPTION FROM EMPLOYEES e
+INNER JOIN
+(SELECT * FROM 
+(SELECT DISTINCT t.TERRITORYID, t.TERRITORYDESCRIPTION FROM TERRITORIES t
+INNER JOIN
+REGION r ON t.REGIONID IN (SELECT REGIONID FROM REGION WHERE REGIONDESCRIPTION = 'Western')) res
+INNER JOIN
+EMPLOYEETERRITORIES et ON et.TERRITORYID = res.TERRITORYID) res 
+ON res.EMPLOYEEID = e.EMPLOYEEID;
+
+/*8	Использование Outer JOIN*/
+
+  /*8.1	Запрос должен выбирать имена всех заказчиков из таблицы Customers и суммарное количество их заказов из таблицы Orders. 
+  Принять во внимание, что у некоторых заказчиков нет заказов, но они также должны быть выведены в результатах запроса. 
+  Упорядочить результаты запроса по возрастанию количества заказов.*/
+
+SELECT c.COMPANYNAME, NVL(a.b, 0) Count FROM Customers c
+LEFT OUTER JOIN
+(SELECT CUSTOMERID, COUNT(CUSTOMERID) b FROM  Orders GROUP BY CUSTOMERID) a ON c.CUSTOMERID = a.CUSTOMERID ORDER BY Count;
+
+/*9	Использование подзапросов*/
+
+  /*9.1	Запрос должен выбирать всех поставщиков (колонка companyName в таблице Suppliers), у которых нет хотя бы одного продукта на складе (unitsInStock в таблице Products равно 0).
+  Использовать вложенный SELECT для этого запроса с использованием оператора IN.
+  Можно ли использовать вместо оператора IN оператор '='?*/
+  
