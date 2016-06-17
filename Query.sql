@@ -137,8 +137,9 @@ SELECT a.y year, COUNT(a.y) total FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM
 
 /*Проверочные запросы*/
 SELECT COUNT(ORDERID) FROM ORDERS; /*Сумма всех заказов из ORDERS (830)*/
-SELECT SUM(a.total) FROM (SELECT a.y year, COUNT(a.y) total 
-FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM ORDERS) a GROUP BY a.y) a; /*Итоговая сумма total (830)*/
+SELECT a.y year, COUNT(a.y) total 
+FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM ORDERS) a 
+GROUP BY ROLLUP(a.y); /*Итоговая сумма total (830)*/
 
   /*6.2	По таблице Orders найти количество заказов, cделанных каждым продавцом.
   Заказ для указанного продавца – это любая запись в таблице Orders, где в колонке employeeID задано значение для данного продавца. 
@@ -171,6 +172,17 @@ WHERE ROWNUM <= 5;
   Т.е. в результирующем наборе должны присутствовать дополнительно к информации о продажах продавца для каждого покупателя следующие строчки:*/
 
 SELECT * FROM Orders WHERE TO_CHAR(ORDERDATE, 'YYYY') = '1998';
+SELECT * FROM Orders;
+
+
+
+SELECT res2.ln, cus.COMPANYNAME, res2.cou2 FROM CUSTOMERS cus
+RIGHT OUTER JOIN
+(SELECT LASTNAME ln, res.c c2, res.cou cou2 FROM  EMPLOYEES empl
+RIGHT OUTER JOIN
+(SELECT EMPLOYEEID e, CUSTOMERID c, COUNT(*) cou FROM ORDERS GROUP BY CUBE(EMPLOYEEID, CUSTOMERID)) res
+ON empl.EMPLOYEEID = res.e) res2
+ON cus.CUSTOMERID = res2.c2;
 
 /*7	Использование Inner JOIN*/
 
