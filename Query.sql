@@ -171,18 +171,48 @@ WHERE ROWNUM <= 5;
   В результатах должна быть сводная информация по продажам.
   Т.е. в результирующем наборе должны присутствовать дополнительно к информации о продажах продавца для каждого покупателя следующие строчки:*/
 
-SELECT * FROM Orders WHERE TO_CHAR(ORDERDATE, 'YYYY') = '1998';
-SELECT * FROM Orders;
-
-
-
-SELECT res2.ln, cus.COMPANYNAME, res2.cou2 FROM CUSTOMERS cus
+SELECT NVL(res2.ln, ' ') Seller, NVL(cus.COMPANYNAME, '---TOTAL---') Customer, res2.cou2 Amount FROM CUSTOMERS cus
 RIGHT OUTER JOIN
 (SELECT LASTNAME ln, res.c c2, res.cou cou2 FROM  EMPLOYEES empl
 RIGHT OUTER JOIN
-(SELECT EMPLOYEEID e, CUSTOMERID c, COUNT(*) cou FROM ORDERS GROUP BY CUBE(EMPLOYEEID, CUSTOMERID)) res
+(SELECT EMPLOYEEID e, CUSTOMERID c, COUNT(*) cou FROM (SELECT * FROM Orders WHERE TO_CHAR(ORDERDATE, 'YYYY') = '1998') GROUP BY CUBE(EMPLOYEEID, CUSTOMERID) ORDER BY EMPLOYEEID, cou) res
 ON empl.EMPLOYEEID = res.e) res2
 ON cus.CUSTOMERID = res2.c2;
+
+  /*6.5	Найти покупателей и продавцов, которые живут в одном городе. 
+  Если в городе живут только продавцы или только покупатели, то информация о таких покупателях и продавцах не должна попадать в результирующий набор. 
+  Не использовать конструкцию JOIN или декартово произведение.
+  В результатах запроса необходимо вывести следующие заголовки для результатов запроса: ‘Person’, ‘Type’ (здесь надо выводить строку ‘Customer’ или  ‘Seller’ в зависимости от типа записи), ‘City’. 
+  Отсортировать результаты запроса по колонкам ‘City’ и ‘Person’.*/
+
+SELECT DISTINCT e.LASTNAME person, e.CITY, 'Seller' Type FROM EMPLOYEES e, CUSTOMERS c WHERE e.CITY = c.CITY
+UNION
+SELECT DISTINCT c.CONTACTNAME person, e.CITY, 'Customer' Type FROM EMPLOYEES e, CUSTOMERS c WHERE e.CITY = c.CITY
+ORDER BY city, person;
+
+
+  /*6.6	Найти всех покупателей, которые живут в одном городе.
+  В запросе использовать соединение таблицы Customers c собой - самосоединение. 
+  Высветить колонки сustomerID  и City. Запрос не должен выбирать дублируемые записи.
+  Отсортировать результаты запроса по колонке City.
+  Для проверки написать запрос, который выбирает города, которые встречаются более одного раза в таблице Customers. 
+  Это позволит проверить правильность запроса.*/
+
+SELECT DISTINCT a.CUSTOMERID, a.CITY 
+FROM CUSTOMERS a, CUSTOMERS b 
+WHERE a.CITY = b.CITY AND a.CUSTOMERID != b.CUSTOMERID 
+ORDER BY a.CITY;
+
+SELECT CITY FROM CUSTOMERS GROUP BY CITY HAVING COUNT(CITY) > 1; /*Проверочный запрос*/
+
+  /*6.7	По таблице Employees найти для каждого продавца его руководителя, т.е. кому он делает репорты.
+  Высветить колонки с именами 'User Name' (lastName) и 'Boss'.
+  Имена должны выбираться из колонки lastName. 
+  Выбираются ли все продавцы в этом запросе?*/
+
+
+
+
 
 /*7	Использование Inner JOIN*/
 
