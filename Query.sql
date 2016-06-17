@@ -137,9 +137,40 @@ SELECT a.y year, COUNT(a.y) total FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM
 
 /*Проверочные запросы*/
 SELECT COUNT(ORDERID) FROM ORDERS; /*Сумма всех заказов из ORDERS (830)*/
-SELECT SUM(a.total) FROM (SELECT a.y year, COUNT(a.y) total FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM ORDERS) a GROUP BY a.y) a; /*Итоговая сумма total (830)*/
+SELECT SUM(a.total) FROM (SELECT a.y year, COUNT(a.y) total 
+FROM (SELECT TO_CHAR(ORDERDATE, 'YYYY') y FROM ORDERS) a GROUP BY a.y) a; /*Итоговая сумма total (830)*/
 
-/*////////////////////////////////////////////////////////////////////////////////////*/
+  /*6.2	По таблице Orders найти количество заказов, cделанных каждым продавцом.
+  Заказ для указанного продавца – это любая запись в таблице Orders, где в колонке employeeID задано значение для данного продавца. 
+  Запрос должен выбирать колонку с полным именем продавца (получается конкатенацией lastName & firstName из таблицы Employees)
+  с названием колонки ‘Seller’ и колонку c количеством заказов с названием 'Amount'.
+  Полное имя продавца должно быть получено отдельным запросом в колонке основного запроса (после SELECT, до FROM). 
+  Результаты запроса должны быть упорядочены по убыванию количества заказов. */
+
+SELECT e.lastName || ' ' || e.firstName Seller, res.ct Amount FROM Employees e
+INNER JOIN
+(SELECT employeeID, COUNT(employeeID) ct FROM Orders GROUP BY employeeID) res ON res.employeeID = e.employeeID;
+
+  /*6.3	Выбрать 5 стран, в которых проживает наибольшее количество заказчиков. 
+  Список должен быть отсортирован по убыванию популярности. 
+  Запрос должен выбирать два столбца - сountry и Count (количество заказчиков).*/
+  
+SELECT res.c country, res.count count 
+FROM(SELECT COUNTRY c, COUNT(COUNTRY) count FROM CUSTOMERS GROUP BY COUNTRY ORDER BY count DESC) res 
+WHERE ROWNUM <= 5;
+
+  /*6.4	По таблице Orders найти количество заказов, cделанных каждым продавцом и для каждого покупателя.
+  Необходимо определить это только для заказов, сделанных в 1998 году. 
+  Запрос должен выбирать колонку с именем продавца (название колонки ‘Seller’), колонку с именем покупателя (название колонки ‘Customer’)
+  и колонку c количеством заказов высвечивать с названием 'Amount'.
+  В запросе необходимо использовать специальный оператор языка PL/SQL для работы с выражением GROUP 
+  (Этот же оператор поможет выводить строку “ALL” в результатах запроса).
+  Группировки должны быть сделаны по ID продавца и покупателя. 
+  Результаты запроса должны быть упорядочены по продавцу, покупателю и по убыванию количества продаж. 
+  В результатах должна быть сводная информация по продажам.
+  Т.е. в результирующем наборе должны присутствовать дополнительно к информации о продажах продавца для каждого покупателя следующие строчки:*/
+
+SELECT * FROM Orders WHERE TO_CHAR(ORDERDATE, 'YYYY') = '1998';
 
 /*7	Использование Inner JOIN*/
 
