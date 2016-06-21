@@ -288,3 +288,15 @@ SELECT DISTINCT SUBSTR(LASTNAME, 0, 1) res
 FROM  Employees 
 ORDER BY res;
 
+/*13	Разработка функций и процедур*/
+
+  /*13.1*/
+  
+EXECUTE GreatestOrders('1996', 4);
+
+/*Проверочный запрос*/
+  SELECT e.LASTNAME || ' ' || e.FIRSTNAME name, o.ORDERID, res.SUM FROM EMPLOYEES e
+  LEFT JOIN
+  (SELECT * FROM ORDERS oo WHERE TO_CHAR(oo.ORDERDATE, 'YYYY') = '1996') o ON e.EMPLOYEEID = o.EMPLOYEEID
+  LEFT JOIN
+  (SELECT ORDERID id, SUM(UNITPRICE * QUANTITY * (1 - DISCOUNT)) sum FROM ORDER_DETAILS GROUP BY ORDERID) res ON res.id = o.ORDERID ORDER BY name;
