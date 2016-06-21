@@ -272,3 +272,19 @@ WHERE e.EMPLOYEEID = res.id AND res.count > 150;
   /*11.1	Запрос должен выбирать имена заказчиков (таблица Customers), которые не имеют ни одного заказа (подзапрос по таблице Orders). 
   Использовать коррелированный SELECT и оператор EXISTS.
   12	Использование строковых функций*/
+
+SELECT COMPANYNAME 
+FROM Customers c 
+WHERE NOT EXISTS 
+(SELECT ORDERID FROM Orders o WHERE c.CUSTOMERID = o.CUSTOMERID);
+
+/*12	Использование строковых функций*/
+
+  /*12.1	Для формирования алфавитного указателя Employees необходимо написать запрос должен выбирать из таблицы 
+  Employees список только тех букв алфавита, с которых начинаются фамилии Employees (колонка lastName) из этой таблицы.
+  Алфавитный список должен быть отсортирован по возрастанию.*/
+
+SELECT DISTINCT SUBSTR(LASTNAME, 0, 1) res 
+FROM  Employees 
+ORDER BY res;
+
