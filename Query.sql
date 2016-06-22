@@ -300,3 +300,31 @@ EXECUTE GreatestOrders('1996', 4);
   (SELECT * FROM ORDERS oo WHERE TO_CHAR(oo.ORDERDATE, 'YYYY') = '1996') o ON e.EMPLOYEEID = o.EMPLOYEEID
   LEFT JOIN
   (SELECT ORDERID id, SUM(UNITPRICE * QUANTITY * (1 - DISCOUNT)) sum FROM ORDER_DETAILS GROUP BY ORDERID) res ON res.id = o.ORDERID ORDER BY name;
+  
+    /*13.2*/
+DECLARE 
+  n NUMBER := 35;
+BEGIN
+  ShippedOrdersDiff(n);
+END;
+/
+
+  /*13.3*/
+DECLARE 
+  n NUMBER := 2;
+BEGIN
+  SubordinationInfo(n);
+END;
+
+/*Проверочный запрос*/
+SELECT FIRSTNAME || ' ' || LASTNAME boss, res.n inferior, res.l lvl FROM EMPLOYEES e
+     RIGHT JOIN
+      (SELECT REPORTSTO r, FIRSTNAME || '' || LASTNAME n, level l  
+      FROM EMPLOYEES
+      CONNECT BY PRIOR EMPLOYEEID = REPORTSTO
+      START WITH REPORTSTO IS NULL
+      ORDER SIBLINGS BY r) res
+    ON e.EMPLOYEEID = res.r;
+
+ /*13.4*/
+SELECT FIRSTNAME || ' ' || LASTNAME employee, ISBOSS(EMPLOYEEID) inferiors FROM EMPLOYEES;

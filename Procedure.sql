@@ -41,6 +41,7 @@ BEGIN
 END GreatestOrders;
 /
 
+
   /*13.2	Написать процедуру, которая возвращает заказы в таблице Orders, согласно указанному сроку доставки в днях (разница между orderDate и shippedDate). 
   В результатах должны быть возвращены заказы, срок которых превышает переданное значение или еще недоставленные заказы.
   Значению по умолчанию для передаваемого срока 35 дней. Название процедуры ShippedOrdersDiff.
@@ -50,3 +51,85 @@ END GreatestOrders;
   Подсказка: для вывода результатов можно использовать DBMS_OUTPUT.
   Необходимо продемонстрировать использование этой процедуры.
   */
+
+CREATE OR REPLACE PROCEDURE ShippedOrdersDiff(different OUT NUMBER) IS
+sd VARCHAR2(32767);
+CURSOR resCursor IS
+  (SELECT orderID, orderDate, shippedDate, (shippedDate - orderDate) ShippedDelay FROM Orders);
+
+BEGIN
+  IF (different IS NULL) THEN
+    different := 35;
+  END IF;
+
+  FOR i IN resCursor
+    LOOP
+      IF (i.ShippedDelay >= different OR i.ShippedDelay IS NULL) THEN
+        IF (i.ShippedDelay IS NULL) THEN
+          sd := 'Not shipped'; 
+            ELSE
+          sd := i.shippedDate;
+        END IF;
+        SYS.DBMS_OUTPUT.PUT_LINE(i.orderID || ' Order date: ' || i.orderDate || ' Shipped date: ' ||
+        sd || ' Shipped delay: ' || i.ShippedDelay || ' Specified delay' || TO_CHAR(different));
+      END IF;
+    END LOOP;
+END;
+/
+
+    /*13.3	Написать процедуру, которая выводит всех подчиненных заданного продавца, как непосредственных, так и подчиненных его подчиненных.
+    В качестве входного параметра процедуры используется employeeID. 
+    Необходимо вывести столбцы employeeID, имена подчиненных и уровень вложенности согласно иерархии подчинения.
+    Продавец, для которого надо найти подчиненных также должен быть высвечен. Название процедуры SubordinationInfo.
+    Необходимо использовать конструкцию START WITH … CONNECT BY. 
+    Подсказка: для вывода результатов можно использовать DBMS_OUTPUT.
+    Продемонстрировать использование процедуры. 
+    Написать проверочный запрос, который вывод всё дерево продавцов.*/
+    
+CREATE OR REPLACE PROCEDURE SubordinationInfo(empID IN OUT NUMBER) IS
+CURSOR resCursor IS
+  (SELECT FIRSTNAME || ' ' || LASTNAME boss, NULL inferior, NULL lvl
+  FROM EMPLOYEES
+  WHERE EMPLOYEEID = empID
+  UNION ALL
+  SELECT FIRSTNAME || ' ' || LASTNAME boss, res.n inferior, res.l lvl FROM EMPLOYEES e
+    INNER JOIN
+      (SELECT REPORTSTO r, FIRSTNAME || '' || LASTNAME n, level l  
+      FROM EMPLOYEES
+      CONNECT BY PRIOR EMPLOYEEID = REPORTSTO
+      START WITH REPORTSTO = empID) res
+    ON e.EMPLOYEEID = res.r);
+
+BEGIN
+  FOR i IN resCursor
+    LOOP
+      IF (i.inferior IS NULL) THEN
+        SYS.DBMS_OUTPUT.PUT_LINE('Boss: ' || i.BOSS);
+      ELSE
+        SYS.DBMS_OUTPUT.PUT_LINE('Boss: ' || i.BOSS || ' /Inferior: ' || i.inferior || ' /Level: ' || i.lvl);
+      END IF;
+    END LOOP;
+END;
+/
+
+  /*13.4	Написать функцию, которая определяет, есть ли у продавца подчиненные и возвращает их количество - тип данных INTEGER.
+  В качестве входного параметра функции используется employeeID.
+  Название функции IsBoss.
+  Продемонстрировать использование функции для всех продавцов из таблицы Employees.*/
+
+CREATE OR REPLACE FUNCTION IsBoss(empID IN INTEGER) RETURN INTEGER 
+IS
+c INTEGER := 0;
+CURSOR resCursor IS
+  (SELECT e.FIRSTNAME || ' ' || e.LASTNAME 
+  FROM EMPLOYEES e
+  WHERE e.REPORTSTO = empID);
+
+BEGIN
+  FOR i IN resCursor
+    LOOP
+      c := c + 1;
+    END LOOP;
+    RETURN(c);
+END IsBoss;
+/
